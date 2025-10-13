@@ -1,7 +1,8 @@
-package io;
+package trafficcontroller.io;
 
-import controller.StopEvent;
-import controller.TrafficEvent;
+import trafficcontroller.controller.StopEvent;
+import trafficcontroller.controller.TrafficEvent;
+
 
 import java.io.IOException;
 import java.net.DatagramPacket;

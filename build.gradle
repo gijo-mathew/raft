@@ -1,0 +1,26 @@
+plugins {
+    id "java" // applies to root; we’ll apply java to subprojects below
+}
+
+subprojects {
+    apply plugin: "java"
+
+    group = "io.raft"
+    version = "1.0-SNAPSHOT"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17) // or 21
+        }
+    }
+
+    repositories { mavenCentral() }
+
+    dependencies {
+        testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+}

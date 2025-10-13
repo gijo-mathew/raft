@@ -1,8 +1,10 @@
-import controller.TimerThread;
-import controller.TrafficEvent;
-import controller.TrafficEventProcessor;
-import io.ButtonListener;
-import io.LightResolver;
+package trafficcontroller;
+
+import trafficcontroller.controller.TimerThread;
+import trafficcontroller.controller.TrafficEvent;
+import trafficcontroller.controller.TrafficEventProcessor;
+import trafficcontroller.io.ButtonListener;
+import trafficcontroller.io.LightResolver;
 
 import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,10 +47,6 @@ public class TrafficController {
         TimerThread timer = new TimerThread(concurrentLinkedQueue);
         Thread timerThread = new Thread(timer);
         timerThread.start();
-
-
-
-
 
         Thread.currentThread().join();  // main thread waits forever
 

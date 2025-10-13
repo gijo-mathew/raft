@@ -1,0 +1,7 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'server.EchoServer'  // or client.EchoClient, whichever is entrypoint
+}

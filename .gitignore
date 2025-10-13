@@ -32,3 +32,9 @@ bin/
 .idea/
 
 *.iml
+
+.gradle
+
+project1/build
+project2/build
+build/

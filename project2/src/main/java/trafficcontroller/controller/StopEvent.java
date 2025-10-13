@@ -1,4 +1,4 @@
-package controller;
+package trafficcontroller.controller;
 
 public class StopEvent extends TrafficEvent{
 

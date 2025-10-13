@@ -1,6 +1,7 @@
-package controller;
+package trafficcontroller.controller;
 
 import java.util.concurrent.LinkedBlockingQueue;
+
 
 public class TimerThread implements Runnable{
 

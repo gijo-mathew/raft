@@ -1,6 +1,6 @@
-package controller;
+package trafficcontroller.controller;
 
-import io.LightResolver;
+import trafficcontroller.io.LightResolver;
 
 import java.util.concurrent.LinkedBlockingQueue;
 

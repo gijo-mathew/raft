@@ -1,3 +1,5 @@
+package server;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 public class KeyValueServer {
