@@ -40,7 +40,7 @@ public class EchoServer {
             while (true) {
                 byte[] msg = MessageUtils.recvMessage(in);
                 String output = parseMessage(msg);
-                MessageUtils.sendMessage(out, output.getBytes(StandardCharsets.UTF_8)); // Echo back
+                MessageUtils.sendMessage(out, output.getBytes(StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             try { socket.close(); } catch (IOException ignored) {}

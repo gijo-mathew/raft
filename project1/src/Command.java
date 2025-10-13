@@ -1,4 +1,6 @@
+import controller.TrafficEvent;
+
 public class Command {
 
-    private Command type;
+    private TrafficEvent type;
 }
