@@ -1,7 +1,8 @@
 rootProject.name = "raft"
 
-include(":project1", ":project2")
+include(":project1", ":project2", "project3")
 
 // (Optional) if you want the module dirs to show nice names:
 project(":project1").name = "project1"
 project(":project2").name = "project2"
+project(":project3").name = "project3"
