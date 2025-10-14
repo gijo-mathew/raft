@@ -59,6 +59,6 @@ public class RaftServer {
     }
 
     public void receiveAppendEntries(Socket clientSocket) {
-        MessageHandler.receiveAppendEntryResponse(clientSocket);
+        MessageHandler.receiveAppendEntry(clientSocket);
     }
 }

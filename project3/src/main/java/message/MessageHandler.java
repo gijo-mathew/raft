@@ -70,7 +70,6 @@ public class MessageHandler {
                 throw new RuntimeException(ex);
             }
         }
-
         return  "Failed to send message";
     }
 
@@ -90,7 +89,7 @@ public class MessageHandler {
         }
     }
 
-    public static void receiveAppendEntryResponse(Socket clientSocket) {
+    public static void receiveAppendEntry(Socket clientSocket) {
         try {
             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
