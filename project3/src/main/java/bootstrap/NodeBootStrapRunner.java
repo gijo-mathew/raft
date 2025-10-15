@@ -24,7 +24,7 @@ public class NodeBootStrapRunner {
             String[] parts = line.split(" ", 2);
             int destinationNode = Integer.parseInt(parts[0]);
             String message = parts[1];
-            List<LogEntry> logEntries = Arrays.asList(new LogEntry(0, message)) ;
+            List<LogEntry> logEntries = Arrays.asList(new LogEntry(0, message,0)) ;
             AppendEntryRequest appendEntryRequest = new AppendEntryRequest(0,
                     "0" ,
                     0,
