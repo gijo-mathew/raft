@@ -30,6 +30,14 @@ public class RaftLogTest {
     }
 
     @Test
+    public void testLogAppendFailureForGap() {
+        List<LogEntry> logEntries = new ArrayList<>();
+        logEntries.add(new LogEntry(1, "First Command", 2));
+        Assertions.assertFalse(raftLog.appendEntries(1, 1, logEntries));
+        Assertions.assertEquals(raftLog.getLog().size(), 1);
+    }
+
+    @Test
     public void testConflict() {
         testLogAppendSuccess();
         List<LogEntry> logEntries = new ArrayList<>();
