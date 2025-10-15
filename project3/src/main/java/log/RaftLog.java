@@ -17,6 +17,7 @@ public class RaftLog {
 
     public void appendNewCommand(int leaderTerm, String command) {
         LogEntry logEntry = new LogEntry(leaderTerm, command, log.size());
+        log.add(logEntry);
         System.out.println("Added new command at index "+logEntry.getIndex());
     }
 
@@ -42,18 +43,22 @@ public class RaftLog {
      */
     public boolean appendEntries(int prevIndex, int prevTerm, List<LogEntry> entries) {
         if(prevIndex > log.size() - 1) {
+            System.out.println("Prev index greater than log size. returning..");
             return false; // hole in log
         }
         if(prevIndex<0){
+            System.out.println("Prev index <0. returning..");
             return false;
         }
 
         LogEntry prevItem = log.get(prevIndex);
         if(prevItem.getTerm() != prevTerm) {
+            System.out.println("Invalid Prev term <0.");
            return false;
         }
 
         if(entries.isEmpty()) {
+            System.out.println("Entries are empty.");
             return true;
         }
 
@@ -74,6 +79,7 @@ public class RaftLog {
                 // else same term -> idempotent
             } else {
                 log.add(entry);
+                System.out.println("added entry");
             }
             index++;
         }
@@ -87,5 +93,11 @@ public class RaftLog {
 
     public List<LogEntry> getLog() {
         return log;
+    }
+
+    public List<LogEntry> getLog(int startIndex) {
+        List<LogEntry> sublist = log.subList(startIndex, log.size());
+        System.out.println("Start index" + startIndex + " sublist size "+sublist.size());
+        return new ArrayList<>(sublist);
     }
 }

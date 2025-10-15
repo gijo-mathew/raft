@@ -1,6 +1,8 @@
 package message;
 
-public class ClientCommandRequest {
+import java.io.Serializable;
+
+public class ClientCommandRequest implements Serializable {
 
     String command;
 

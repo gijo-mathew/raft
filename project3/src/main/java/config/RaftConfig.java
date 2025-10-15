@@ -12,9 +12,10 @@ public class RaftConfig {
     static {
         NODES.put(1, new NodeAddress("localhost", 15000));
         NODES.put(2, new NodeAddress("localhost", 16000));
-        NODES.put(3, new NodeAddress("localhost",17000));
+        //TODO
+       /* NODES.put(3, new NodeAddress("localhost",17000));
         NODES.put(4, new NodeAddress("localhost",18000));
-        NODES.put(5, new NodeAddress("localhost",19000));
+        NODES.put(5, new NodeAddress("localhost",19000));*/
     }
 
 

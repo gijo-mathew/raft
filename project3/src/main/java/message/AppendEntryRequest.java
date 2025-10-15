@@ -6,13 +6,13 @@ import java.util.List;
 public class AppendEntryRequest extends Message implements Serializable {
 
     private final int term;
-    private final String leaderId;
+    private final int leaderId;
     private final int prevLogIndex;
     private final int prevLogTerm;
     private final List<LogEntry> entries;
     private final int leaderCommit;
 
-    public AppendEntryRequest(int term, String leaderId, int prevLogIndex, int prevLogTerm, List<LogEntry> entries, int leaderCommit) {
+    public AppendEntryRequest(int term, int leaderId, int prevLogIndex, int prevLogTerm, List<LogEntry> entries, int leaderCommit) {
         this.term = term;
         this.leaderId = leaderId;
         this.prevLogIndex = prevLogIndex;
@@ -25,7 +25,7 @@ public class AppendEntryRequest extends Message implements Serializable {
         return term;
     }
 
-    public String getLeaderId() {
+    public int getLeaderId() {
         return leaderId;
     }
 

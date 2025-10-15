@@ -1,6 +1,8 @@
 package message;
 
-public class ClientCommandResponse {
+import java.io.Serializable;
+
+public class ClientCommandResponse implements Serializable {
 
     private final String commandResponse;
 

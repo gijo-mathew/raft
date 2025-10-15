@@ -73,16 +73,73 @@ public class MessageHandler {
         return  "Failed to send message";
     }
 
-    public static void sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
+    /*public static void sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
         RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
         try(Socket socket = new Socket(nodeAddress.getAddress(), nodeAddress.getPort());){
+            System.out.println("Sending append entry message");
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
             out.writeObject(appendEntryRequest);
             out.flush();
             AppendEntryResponse appendEntryResponse = (AppendEntryResponse)in.readObject();
             System.out.println("Sent message ?:"+appendEntryResponse.isSuccess());
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }*/
+
+
+
+    /*public static void sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
+        RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
+        try(Socket socket = new Socket(nodeAddress.getAddress(), nodeAddress.getPort());){
+            // Create OUTPUT stream first
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush(); // Send header immediately
+
+            // Then create INPUT stream
+            System.out.println("Sending append entry");
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+            // Now communicate
+            out.writeObject(appendEntryRequest);
+            out.flush();
+
+            ClientCommandResponse clientCommandResponse = (ClientCommandResponse) in.readObject();
+            System.out.println("Response: " + clientCommandResponse.getCommandResponse());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+*/
+
+    public static void sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
+        RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
+        System.out.println("Connecting to node " + destinationNodeId + " at " + nodeAddress.getAddress() + ":" + nodeAddress.getPort());
+
+        try(Socket socket = new Socket(nodeAddress.getAddress(), nodeAddress.getPort());){
+            System.out.println("Connected! Creating OOS...");
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            System.out.println("OOS created. Creating OIS...");
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            System.out.println("OIS created. Writing object...");
+
+            out.writeObject(appendEntryRequest);
+            out.flush();
+            System.out.println("Object written. Waiting for response...");
+
+            Object response = in.readObject();
+            System.out.println("Response received: " + response);
+
+        } catch (IOException e) {
+            System.err.println("IOException in sendAppendEntry to node " + destinationNodeId);
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
