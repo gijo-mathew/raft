@@ -27,6 +27,7 @@ public class RaftConnection {
         try {
             objectOutputStream.writeObject(object);
             objectOutputStream.flush();
+            System.out.println("flushed object stream");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

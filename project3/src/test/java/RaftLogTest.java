@@ -78,6 +78,7 @@ public class RaftLogTest {
         logEntries.add(new LogEntry(2, "Fifth Command Second term", 5));
         Assertions.assertTrue(raftLog.appendEntries(1, 1, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 6);
+        Assertions.assertEquals(raftLog.getLog().get(1).getCommand(),"First Command First term");
         Assertions.assertEquals(raftLog.getLog().get(2).getCommand(),"Second Command Second term");
     }
 

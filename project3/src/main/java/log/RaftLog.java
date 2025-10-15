@@ -15,6 +15,11 @@ public class RaftLog {
     }
 
 
+    public void appendNewCommand(int leaderTerm, String command) {
+        LogEntry logEntry = new LogEntry(leaderTerm, command, log.size());
+        System.out.println("Added new command at index "+logEntry.getIndex());
+    }
+
     //
     //
     //
@@ -60,8 +65,11 @@ public class RaftLog {
                     // Conflict: remove existing and all after, then append
                     while(log.size() > index) {
                         log.remove(log.size() - 1);
+
+                        //0,1,2,3,4
                     }
                     log.add(entry);
+                    System.out.println("Appended new command at index "+index);
                 }
                 // else same term -> idempotent
             } else {

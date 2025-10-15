@@ -89,15 +89,55 @@ public class MessageHandler {
         }
     }
 
+    public static Object receiveMessageFromSocket(Socket clientSocket) {
+        try {
+            ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+            return in.readObject();
+        } catch (IOException e) {
+            System.out.println("Error "+e.getMessage());
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void sendMessageToSocket(Socket clientSocket, Object object) {
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+            out.writeObject(object);
+            out.flush();
+            System.out.println("Flushed output to socket");
+        } catch (IOException e) {
+            System.out.println("Error "+e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+    }
+
     public static void receiveAppendEntry(Socket clientSocket) {
         try {
             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-            AppendEntryRequest myObject = (AppendEntryRequest) in.readObject();
-            System.out.println("Received command " + myObject.getEntries().get(0).getCommand());
-            AppendEntryResponse appendEntryResponse = new AppendEntryResponse(0, true, 1 );
-            out.writeObject(appendEntryResponse);
-            out.flush();
+
+            Object object = in.readObject();
+            if( object instanceof AppendEntryRequest ){
+                AppendEntryRequest appendEntryRequest = (AppendEntryRequest) object;
+                System.out.println("Received AppendEntryRequest command " + appendEntryRequest.getEntries().get(0).getCommand());
+                AppendEntryResponse appendEntryResponse = new AppendEntryResponse(0, true, 1 );
+                out.writeObject(appendEntryResponse);
+                out.flush();
+                System.out.println("Received AppendEntryRequest command " + appendEntryRequest.getEntries().get(0).getCommand() + "and response OK");
+            }
+            if( object instanceof ClientCommandRequest) {
+                ClientCommandRequest clientCommandRequest = (ClientCommandRequest) object;
+                System.out.println("Received client command request"+ clientCommandRequest.getCommand());
+                ClientCommandResponse clientCommandResponse = new ClientCommandResponse("success");
+                out.writeObject(clientCommandResponse);
+                out.flush();
+                System.out.println("Sent response");
+            }
+
+
         } catch (IOException e) {
             e.printStackTrace();
             try {
@@ -109,5 +149,6 @@ public class MessageHandler {
             throw new RuntimeException(e);
         }
     }
+
 
 }
