@@ -3,7 +3,10 @@ package message;
 import config.RaftConfig;
 
 import java.io.*;
+import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class MessageHandler {
 
@@ -123,7 +126,16 @@ public class MessageHandler {
         RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
         System.out.println("Connecting to node " + destinationNodeId + " at " + nodeAddress.getAddress() + ":" + nodeAddress.getPort());
 
-        try(Socket socket = new Socket(nodeAddress.getAddress(), nodeAddress.getPort());){
+        Socket socket = null;
+        try{
+            socket = new Socket();
+            socket.connect(
+                    new InetSocketAddress(nodeAddress.getAddress(), nodeAddress.getPort()),
+                    RaftConfig.SOCKET_CONNECTION_TIMEOUT_MS  // e.g., 50ms
+            );
+
+            // Set read timeout
+            socket.setSoTimeout(RaftConfig.SOCKET_READ_TIMEOUT_MS);  // e.g., 100ms
             System.out.println("Connected! Creating OOS...");
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
@@ -139,11 +151,29 @@ public class MessageHandler {
             System.out.println(" AppendEntryResponse Response received: " + response);
             return (AppendEntryResponse)response;
 
+        }catch (SocketTimeoutException e) {
+            System.err.println("Timeout communicating with node " + destinationNodeId +
+                    " (connection or read timeout)");
+            return null;
+
+        } catch (ConnectException e) {
+            System.err.println("Cannot connect to node " + destinationNodeId +
+                    " - node might be down or not listening");
+            return null;
+
         } catch (IOException e) {
             System.err.println("IOException in sendAppendEntry to node " + destinationNodeId);
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    // Ignore close errors
+                }
+            }
         }
         return null;
     }

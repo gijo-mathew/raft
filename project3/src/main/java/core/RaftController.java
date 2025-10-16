@@ -160,7 +160,7 @@ public class RaftController {
         AppendEntryRequest appendEntryRequest = new AppendEntryRequest(
                 currentTerm, nodeId, prevIndex, prevTerm, logEntries,  commitIndex);
         AppendEntryResponse appendEntryResponse =raftTransport.sendAppendEntries(peer.nodeId, appendEntryRequest);
-        System.out.println("sent append entry request to node "+peer.nodeId + " from" + Thread.currentThread().getName());
+        System.out.println("sent append entry request to node " +peer.nodeId + " from" + Thread.currentThread().getName());
         return appendEntryResponse;
     }
 
