@@ -119,7 +119,7 @@ public class MessageHandler {
     }
 */
 
-    public static void sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
+    public static AppendEntryResponse sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
         RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
         System.out.println("Connecting to node " + destinationNodeId + " at " + nodeAddress.getAddress() + ":" + nodeAddress.getPort());
 
@@ -136,7 +136,8 @@ public class MessageHandler {
             System.out.println("Object written. Waiting for response...");
 
             Object response = in.readObject();
-            System.out.println("Response received: " + response);
+            System.out.println(" AppendEntryResponse Response received: " + response);
+            return (AppendEntryResponse)response;
 
         } catch (IOException e) {
             System.err.println("IOException in sendAppendEntry to node " + destinationNodeId);
@@ -144,6 +145,7 @@ public class MessageHandler {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
     public static Object receiveMessageFromSocket(Socket clientSocket) {
@@ -171,7 +173,7 @@ public class MessageHandler {
 
     }
 
-    public static void receiveAppendEntry(Socket clientSocket) {
+    /*public static void receiveAppendEntry(Socket clientSocket) {
         try {
             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
@@ -205,7 +207,7 @@ public class MessageHandler {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-    }
+    }*/
 
 
 }

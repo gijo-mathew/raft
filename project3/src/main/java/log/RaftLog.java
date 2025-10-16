@@ -11,7 +11,7 @@ public class RaftLog {
 
     public RaftLog() {
         this.log = new ArrayList<>();
-        log.add(new LogEntry(1, "Dummy Command", 0));
+        log.add(new LogEntry(0, "Dummy Command", 0));
     }
 
 

@@ -13,14 +13,15 @@ import org.junit.jupiter.api.Test;
 import java.net.Socket;
 
 import java.util.List;
+import java.util.Map;
 
 public class RaftControllerTest {
 
     @Test
     public void testReplicationSuccess() {
 
-        List<Peer> leaderPeers = List.of(new Peer(2));
-        List<Peer> followerPeers = List.of(new Peer(1));
+        Map<Integer, Peer> leaderPeers = Map.of(2, new Peer(2));
+        Map<Integer, Peer> followerPeers = Map.of(2, new Peer(2));
 
         var transport = new LoopbackTransport();
         RaftController follower = new RaftController(null, 2, followerPeers);
@@ -30,6 +31,13 @@ public class RaftControllerTest {
         transport.follower = follower;
 
         leader.becomeLeader();
+
+
+        leaderPeers.forEach((key, peer) -> {
+            Assertions.assertEquals(peer.getNextIndex(), leader.getRaftLog().getLog().size(),
+                    "Value mismatch for key: " + key);
+        });
+
 
         ClientCommandRequest clientCommandRequest = new ClientCommandRequest("First command");
         int leaderLogSizeBeforeCommand = leader.getRaftLog().getLog().size();
@@ -52,6 +60,8 @@ public class RaftControllerTest {
         Assertions.assertEquals(lastEntryInLeader.getCommand(), lastEntryInFollower.getCommand());
         Assertions.assertEquals(lastEntryInLeader.getIndex(), lastEntryInFollower.getIndex());
         Assertions.assertEquals(lastEntryInLeader.getTerm(), lastEntryInFollower.getTerm());
+
+        Assertions.assertEquals(leaderPeers.get(follower.getNodeId()).getNextIndex(), follower.getRaftLog().getLog().size());
     }
 
     static class LoopbackTransport implements RaftTransport {
@@ -59,11 +69,14 @@ public class RaftControllerTest {
         RaftController follower;
 
         @Override
-        public void sendAppendEntries(int peerId, AppendEntryRequest req) {
+        public AppendEntryResponse sendAppendEntries(int peerId, AppendEntryRequest req) {
             // leader -> follower
             boolean isAppended = follower.onAppendEntriesRequest(req);
             // follower -> leader callback
-            leader.onAppendEntriesResponse(new AppendEntryResponse(follower.getCurrentTerm(), isAppended, 1));
+           return new AppendEntryResponse(follower.getNodeId(),
+                    follower .getCurrentTerm(),
+                    isAppended,
+                    1);
         }
 
 

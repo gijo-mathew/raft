@@ -5,6 +5,7 @@ import log.RaftLog;
 import message.*;
 
 import java.util.List;
+import java.util.Map;
 
 public class RaftController {
 
@@ -15,18 +16,22 @@ public class RaftController {
     private String role;
     //TODO votedfor
     private int commitIndex;
-    private final List<Peer> peers;
+    private final Map<Integer, Peer> peers;
     private int leaderCommit;
 
     //index of the last entry in the leader’s local log.
     private int leaderLastLogIndex;
 
-    public RaftController(RaftTransport raftTransport, int nodeId, List<Peer> peers) {
+    public RaftController(RaftTransport raftTransport, int nodeId, Map<Integer, Peer> peers) {
         this.raftTransport = raftTransport;
         this.raftLog = new RaftLog();
         this.nodeId = nodeId;
         this.role = "follower";
         this.peers = peers;
+        /*
+        * Initially current term to zero
+        * */
+        this.currentTerm = 0;
     }
 
     public void becomeLeader() {
@@ -36,7 +41,7 @@ public class RaftController {
         last log index + 1)
         initializing to size as we have dummy command in all nodes at index zero
         */
-        peers.forEach(peer -> peer.setNextIndex(raftLog.getLog().size()));
+        peers.values().forEach(peer -> peer.setNextIndex(raftLog.getLog().size()));
     }
 
     public void setCurrentTerm(int currentTerm) {
@@ -61,7 +66,7 @@ public class RaftController {
 
     public void updateFollowers(){
 
-        for(Peer peer: peers){
+        for(Peer peer: peers.values()){
 
             int nextIndex = peer.nextIndex; //on start -> 1
             int prevIndex = nextIndex-1; // on start -> 0
@@ -73,8 +78,9 @@ public class RaftController {
             List<LogEntry> logEntries = raftLog.getLog(nextIndex);
             AppendEntryRequest appendEntryRequest = new AppendEntryRequest(
                     currentTerm, nodeId, prevIndex, prevTerm, logEntries,  leaderCommit);
-            raftTransport.sendAppendEntries(peer.nodeId, appendEntryRequest);
+            AppendEntryResponse appendEntryResponse =raftTransport.sendAppendEntries(peer.nodeId, appendEntryRequest);
             System.out.println("sent append entry request to node "+peer.nodeId);
+            onAppendEntriesResponse(appendEntryResponse);
         }
 
 
@@ -90,6 +96,22 @@ public class RaftController {
 
     public void onAppendEntriesResponse(AppendEntryResponse appendEntryResponse) {
 
+        System.out.println("Updating append entry response");
+        if(appendEntryResponse.isSuccess()) {
+            System.out.println("Append entry response success from node "+appendEntryResponse.getFollowerId());
+            peers.get(appendEntryResponse.getFollowerId()).setNextIndex(appendEntryResponse.getMatchIndex()+1);
+        }else {
+            System.out.println("Append entry response failed for node "+appendEntryResponse.getFollowerId());
+            int nextIndex = peers.get(appendEntryResponse.getFollowerId()).getNextIndex();
+            peers.get(appendEntryResponse.getFollowerId()).setNextIndex(nextIndex-1);
+        }
+
+
+        /*else:
+            # It failed
+        self.next_index[msg.follower_id] -= 1
+        self.update_single_follower(msg.follower_id)   # Retry*/
+
     }
 
 
@@ -100,7 +122,10 @@ public class RaftController {
 
             boolean isAppendSuccess = onAppendEntriesRequest(appendEntryRequest);
 
-            AppendEntryResponse appendEntryResponse = new AppendEntryResponse(0, isAppendSuccess, 1 );
+            AppendEntryResponse appendEntryResponse = new AppendEntryResponse(nodeId,
+                    0,
+                    isAppendSuccess,
+                    appendEntryRequest.getPrevLogIndex() + appendEntryRequest.getEntries().size());
             System.out.println("Returning AppendEntryResponse " + appendEntryRequest.getEntries().get(0).getCommand() + "and response OK");
             return appendEntryResponse;
         }
@@ -112,7 +137,11 @@ public class RaftController {
             ClientCommandResponse clientCommandResponse = new ClientCommandResponse("success");
             System.out.println("Returning ClientCommandResponse response");
             return clientCommandResponse;
-        }else {
+        }else if(message instanceof AppendEntryResponse appendEntryResponse) {
+            System.out.println("Received AppendEntry Response");
+            return appendEntryResponse;
+        }
+        else {
             throw new RuntimeException("Invalid message");
         }
     }
@@ -135,5 +164,9 @@ public class RaftController {
 
     public int getLeaderLastLogIndex() {
         return leaderLastLogIndex;
+    }
+
+    public int getNodeId() {
+        return nodeId;
     }
 }

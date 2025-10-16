@@ -3,13 +3,13 @@ package message;
 import java.io.Serializable;
 
 public class AppendEntryResponse implements Serializable {
+    private final int followerId;
     private final int term;
     private final boolean success;
     private final int matchIndex;
-    private int from;
-    private int to;
 
-    public AppendEntryResponse(int term, boolean success, int matchIndex) {
+    public AppendEntryResponse(int followerId, int term, boolean success, int matchIndex) {
+        this.followerId = followerId;
         this.term = term;
         this.success = success;
         this.matchIndex = matchIndex;
@@ -27,19 +27,7 @@ public class AppendEntryResponse implements Serializable {
         return success;
     }
 
-    public int getFrom() {
-        return from;
-    }
-
-    public void setFrom(int from) {
-        this.from = from;
-    }
-
-    public int getTo() {
-        return to;
-    }
-
-    public void setTo(int to) {
-        this.to = to;
+    public int getFollowerId() {
+        return followerId;
     }
 }

@@ -15,7 +15,7 @@ public class RaftLogTest {
     public void testLogAppendSuccess() {
         List<LogEntry> logEntries = new ArrayList<>();
         logEntries.add(new LogEntry(1, "First Command", 1));
-        Assertions.assertTrue(raftLog.appendEntries(0, 1, logEntries));
+        Assertions.assertTrue(raftLog.appendEntries(0, 0, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 2);
         Assertions.assertEquals(raftLog.getLog().get(1).getCommand(), "First Command");
     }
@@ -25,7 +25,7 @@ public class RaftLogTest {
         testLogAppendSuccess();
         List<LogEntry> logEntries = new ArrayList<>();
         logEntries.add(new LogEntry(1, "Second Command", 2));
-        Assertions.assertTrue(raftLog.appendEntries(0, 1, logEntries));
+        Assertions.assertTrue(raftLog.appendEntries(0, 0, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 2);
     }
 
@@ -33,7 +33,7 @@ public class RaftLogTest {
     public void testLogAppendFailureForGap() {
         List<LogEntry> logEntries = new ArrayList<>();
         logEntries.add(new LogEntry(1, "First Command", 2));
-        Assertions.assertFalse(raftLog.appendEntries(1, 1, logEntries));
+        Assertions.assertFalse(raftLog.appendEntries(1, 0, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 1);
     }
 
@@ -42,7 +42,7 @@ public class RaftLogTest {
         testLogAppendSuccess();
         List<LogEntry> logEntries = new ArrayList<>();
         logEntries.add(new LogEntry(2, "Second Command", 1));
-        Assertions.assertTrue(raftLog.appendEntries(0, 1, logEntries));
+        Assertions.assertTrue(raftLog.appendEntries(0, 0, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 2);
     }
 
@@ -50,8 +50,8 @@ public class RaftLogTest {
     public void testLogAppendIdempotency() {
         List<LogEntry> logEntries = new ArrayList<>();
         logEntries.add(new LogEntry(1, "First Command", 1));
-        Assertions.assertTrue(raftLog.appendEntries(0, 1, logEntries));
-        Assertions.assertTrue(raftLog.appendEntries(0, 1, logEntries));
+        Assertions.assertTrue(raftLog.appendEntries(0, 0, logEntries));
+        Assertions.assertTrue(raftLog.appendEntries(0, 0, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 2);
     }
 
@@ -62,7 +62,7 @@ public class RaftLogTest {
         logEntries.add(new LogEntry(1, "Second Command First term", 2));
         logEntries.add(new LogEntry(1, "Third Command First term", 3));
         logEntries.add(new LogEntry(2, "Fourth Command First term", 4));
-        Assertions.assertTrue(raftLog.appendEntries(0, 1, logEntries));
+        Assertions.assertTrue(raftLog.appendEntries(0, 0, logEntries));
         Assertions.assertEquals(raftLog.getLog().size(), 5);
         Assertions.assertEquals(raftLog.getLog().get(2).getCommand(),"Second Command First term");
 

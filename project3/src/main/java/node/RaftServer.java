@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class RaftServer implements RaftTransport {
 
@@ -27,7 +28,7 @@ public class RaftServer implements RaftTransport {
 
     private Map<Integer, Socket> socketCache = new HashMap<>();
 
-    public RaftServer(int nodeNumber, List<Peer> peers) {
+    public RaftServer(int nodeNumber, Map<Integer, Peer> peers) {
         this.nodeNumber = nodeNumber;
         this.nodeAddress = RaftConfig.NODES.get(nodeNumber);
         this.raftController = new RaftController(this, nodeNumber, peers);
@@ -41,7 +42,7 @@ public class RaftServer implements RaftTransport {
         }
     }
 
-    public RaftServer(int nodeNumber, boolean isLeader, List<Peer> peers) {
+    public RaftServer(int nodeNumber, boolean isLeader, Map<Integer, Peer> peers) {
         this.nodeNumber = nodeNumber;
         this.nodeAddress = RaftConfig.NODES.get(nodeNumber);
         this.raftController = new RaftController(this, nodeNumber, peers);
@@ -60,14 +61,16 @@ public class RaftServer implements RaftTransport {
 
     public static void main(String[] args) throws IOException {
         int nodeId = Integer.parseInt(args[0]);
-        List<Peer> peers = RaftConfig.NODES
-                .keySet()
+        Map<Integer, Peer> peers = RaftConfig.NODES
+                .entrySet()
                 .stream()
-                .filter(key -> key!= nodeId)
-                .map(Peer::new)
-                .toList();
+                .filter(entry -> entry.getKey() != nodeId)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry ->  new Peer(entry.getKey())
+                ));
         System.out.print("Peer list for node "+nodeId + " -> ");
-        peers.forEach(peer -> System.out.println(peer.getNodeId() + ", "));
+        peers.entrySet().forEach(peer -> System.out.println(peer.getValue().getNodeId() + ", "));
         RaftServer raftServer;
         if(args.length>1) {
             boolean isLeader = Boolean.parseBoolean(args[1]);
@@ -202,8 +205,8 @@ public class RaftServer implements RaftTransport {
         this.handleIncomingConnection(clientSocket);
     }
 */
-    public void sendAppendEntries(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
-        MessageHandler.sendAppendEntry(destinationNodeId, appendEntryRequest);
+    public AppendEntryResponse sendAppendEntries(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
+        return MessageHandler.sendAppendEntry(destinationNodeId, appendEntryRequest);
        /* RaftConnection conn = getOutboundConnection(destinationNodeId);
         System.out.println("conn" + conn.hashCode());
         conn.send(appendEntryRequest);
