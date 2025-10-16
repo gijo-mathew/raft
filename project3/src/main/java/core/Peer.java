@@ -1,10 +1,14 @@
 package core;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class Peer {
 
     int nodeId;
-    int nextIndex;
-    int matchIndex;
+
+    AtomicInteger nextIndex = new AtomicInteger(0);
+    AtomicInteger matchIndex = new AtomicInteger(0);
+
     boolean voteGranted;
 
     public Peer(int nodeId) {
@@ -27,19 +31,19 @@ public class Peer {
         this.voteGranted = voteGranted;
     }
 
-    public int getMatchIndex() {
-        return matchIndex;
-    }
-
-    public void setMatchIndex(int matchIndex) {
-        this.matchIndex = matchIndex;
-    }
-
     public int getNextIndex() {
-        return nextIndex;
+        return nextIndex.get();
     }
 
     public void setNextIndex(int nextIndex) {
-        this.nextIndex = nextIndex;
+        this.nextIndex.set(nextIndex);
+    }
+
+    public int getMatchIndex() {
+        return matchIndex.get();
+    }
+
+    public void setMatchIndex(int matchIndex) {
+        this.matchIndex.set(matchIndex);
     }
 }
