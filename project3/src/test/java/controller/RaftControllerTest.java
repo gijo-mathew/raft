@@ -3,10 +3,7 @@ package controller;
 import core.Peer;
 import core.RaftController;
 import io.RaftTransport;
-import message.AppendEntryRequest;
-import message.AppendEntryResponse;
-import message.ClientCommandRequest;
-import message.LogEntry;
+import message.*;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 
@@ -175,6 +172,11 @@ public class RaftControllerTest {
 
         @Override
         public void handleIncomingConnection(Socket s) { /* unused in unit test */ }
+
+        @Override
+        public VoteResponse sendRequestVote(int destinationNodeId, VoteRequest req) {
+          return null;
+        }
 
         public void setLeader(RaftController leader) {
             this.leader = leader;

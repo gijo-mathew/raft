@@ -1,8 +1,9 @@
 package core;
 
+import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Peer {
+public class Peer implements Serializable {
 
     int nodeId;
 

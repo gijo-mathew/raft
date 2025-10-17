@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class ClientApp {
 
@@ -35,6 +36,7 @@ public class ClientApp {
             String line = scanner.nextLine();
             String[] parts = line.split(" ", 2);
             int destinationNode = Integer.parseInt(parts[0]);
+
             String message = parts[1];
             ClientCommandRequest clientCommandRequest = new ClientCommandRequest(message);
             sendCommand(clientCommandRequest, destinationNode);
@@ -74,7 +76,12 @@ public class ClientApp {
             out.flush();
 
             ClientCommandResponse clientCommandResponse = (ClientCommandResponse) in.readObject();
-            System.out.println("Response: " + clientCommandResponse.getCommandResponse());
+            String peerStatus = clientCommandResponse.getPeerStatus().stream().map( p ->
+                    new String(" node: "+p.getNodeId() + " matchIndex: "+p.getMatchIndex())).collect(Collectors.joining());
+            System.out.println("{ status : " + clientCommandResponse.getCommandResponse() +", " +
+                    "leader log size: " +clientCommandResponse.getLeaderLogSize() + ", " +
+                    " commit index" +clientCommandResponse.getCommitIndex() + " }" +
+                    "peer status "+ peerStatus);
 
         } catch (IOException e) {
             e.printStackTrace();

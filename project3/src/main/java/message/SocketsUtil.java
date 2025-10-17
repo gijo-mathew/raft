@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-public class MessageHandler {
+public class SocketsUtil {
 
     public static void sendMessage(int destinationNodeId, String message ) throws IOException {
         RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
@@ -122,9 +122,61 @@ public class MessageHandler {
     }
 */
 
+    public static VoteResponse sendVoteRequest(int destinationNodeId,VoteRequest voteRequest) {
+        RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
+        //System.out.println("Connecting to node " + destinationNodeId + " at " + nodeAddress.getAddress() + ":" + nodeAddress.getPort());
+
+        Socket socket = null;
+        try {
+            socket = new Socket();
+            socket.connect(
+                    new InetSocketAddress(nodeAddress.getAddress(), nodeAddress.getPort()),
+                    RaftConfig.SOCKET_CONNECTION_TIMEOUT_MS  // e.g., 50ms
+            );
+            socket.setSoTimeout(RaftConfig.SOCKET_READ_TIMEOUT_MS);  // e.g., 100ms
+            //System.out.println("Connected! Creating OOS...");
+            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            //System.out.println("OOS created. Creating OIS...");
+            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+            //System.out.println("OIS created. Writing object...");
+
+            out.writeObject(voteRequest);
+            out.flush();
+            //System.out.println("VoteRequest written. Waiting for response...");
+            Object response = in.readObject();
+            System.out.println(" AppendEntryResponse Response received: " + response);
+            return (VoteResponse) response;
+
+        }catch (SocketTimeoutException e) {
+            System.err.println("SocketTimeoutException Timeout communicating with node " + destinationNodeId);
+            e.printStackTrace();
+            return null;
+        } catch (ConnectException e) {
+            System.err.println("ConnectTimeout connect to node " + destinationNodeId +
+                " - node might be down or not listening");
+            return null;
+
+        } catch (IOException e) {
+            System.err.println("IOException in sendAppendEntry to node " + destinationNodeId);
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    // Ignore close errors
+                }
+            }
+        }
+        return null;
+    }
+
     public static AppendEntryResponse sendAppendEntry(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
         RaftConfig.NodeAddress nodeAddress = RaftConfig.NODES.get(destinationNodeId);
-        System.out.println("Connecting to node " + destinationNodeId + " at " + nodeAddress.getAddress() + ":" + nodeAddress.getPort());
+        //System.out.println("Connecting to node " + destinationNodeId + " at " + nodeAddress.getAddress() + ":" + nodeAddress.getPort());
 
         Socket socket = null;
         try{
@@ -135,25 +187,26 @@ public class MessageHandler {
             );
 
             // Set read timeout
-            socket.setSoTimeout(RaftConfig.SOCKET_READ_TIMEOUT_MS);  // e.g., 100ms
-            System.out.println("Connected! Creating OOS...");
+            //socket.setSoTimeout(RaftConfig.SOCKET_READ_TIMEOUT_MS);  // e.g., 100ms
+            //System.out.println("Connected! Creating OOS...");
             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
-            System.out.println("OOS created. Creating OIS...");
+            //System.out.println("OOS created. Creating OIS...");
             ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-            System.out.println("OIS created. Writing object...");
+            //System.out.println("OIS created. Writing object...");
 
             out.writeObject(appendEntryRequest);
             out.flush();
-            System.out.println("Object written. Waiting for response...");
+            //System.out.println("Object written. Waiting for response...");
 
             Object response = in.readObject();
-            System.out.println(" AppendEntryResponse Response received: " + response);
+            //System.out.println(" AppendEntryResponse Response received: " + response);
             return (AppendEntryResponse)response;
 
         }catch (SocketTimeoutException e) {
-            System.err.println("Timeout communicating with node " + destinationNodeId +
+            System.err.println("SocketTimeoutException communicating with node " + destinationNodeId +
                     " (connection or read timeout)");
+            e.printStackTrace();
             return null;
 
         } catch (ConnectException e) {

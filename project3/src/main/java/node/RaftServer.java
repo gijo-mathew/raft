@@ -35,10 +35,14 @@ public class RaftServer implements RaftTransport {
         try {
             this.serverSocket = new ServerSocket(nodeAddress.getPort());
             System.out.println("starting server "+ nodeNumber + " on port " + nodeAddress.getPort() + " as follower");
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+
             System.out.println("Unable to start node" + nodeNumber);
-            throw new RuntimeException(e);
+            if (raftController != null) {
+                raftController.shutdown();
+            }
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -52,10 +56,13 @@ public class RaftServer implements RaftTransport {
         try {
             this.serverSocket = new ServerSocket(nodeAddress.getPort());
             System.out.println("starting server "+ nodeNumber + " on port " + nodeAddress.getPort() + " as leader");
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Unable to start node" + nodeNumber);
-            throw new RuntimeException(e);
+            if (raftController != null) {
+                raftController.shutdown();
+            }
+            System.exit(1);
         }
     }
 
@@ -79,20 +86,45 @@ public class RaftServer implements RaftTransport {
             raftServer = new RaftServer(nodeId, peers);
         }
 
+
         raftServer.startServer();
     }
 
     public void startServer() {
-        executor.submit(() -> {
-            while(true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("New connection between " + nodeNumber + " & "+ clientSocket.getRemoteSocketAddress());
-                executor.submit(() -> {
-                    handleIncomingConnection(clientSocket);
-                });
+        try {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                System.out.println("Shutdown hook triggered");
+                if (raftController != null) {
+                    raftController.shutdown();
+                }
+                if (serverSocket != null) {
+                    try {
+                        serverSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }));
+
+            executor.submit(() -> {
+                while(true) {
+                    Socket clientSocket = serverSocket.accept();
+                    //System.out.println("New connection between " + nodeNumber + " & "+ clientSocket.getRemoteSocketAddress());
+                    executor.submit(() -> {
+                        handleIncomingConnection(clientSocket);
+                    });
+                }
+            });
+            System.out.println("Started node" + this.nodeNumber);
+        } catch (Exception e) {
+            System.err.println("FATAL: Server error");
+            e.printStackTrace();
+            if (raftController != null) {
+                raftController.shutdown();
             }
-        });
-        System.out.println("Started node" + this.nodeNumber);
+            System.exit(1);
+        }
+
 
     }
 
@@ -169,32 +201,53 @@ public class RaftServer implements RaftTransport {
     }*/
 
     public void handleIncomingConnection(Socket clientSocket) {
-        System.out.println("=== New connection from: " + clientSocket.getRemoteSocketAddress() + " ===");
+        //System.out.println("=== New connection from: " + clientSocket.getRemoteSocketAddress() + " ===");
         try {
-            System.out.println("Creating OOS...");
+            //System.out.println("Creating OOS...");
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
             out.flush();
-            System.out.println("OOS created. Creating OIS...");
+            //System.out.println("OOS created. Creating OIS...");
             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
-            System.out.println("OIS created. Reading object...");
+            //System.out.println("OIS created. Reading object...");
 
             Object input = in.readObject();
-            System.out.println("Received: " + input.getClass().getSimpleName());
+            //System.out.println("Received: " + input.getClass().getSimpleName());
 
             Object output = raftController.handleMessage(input);
-            System.out.println("Processed. Sending response...");
+            //System.out.println("Processed. Sending response...");
 
             out.writeObject(output);
             out.flush();
-            System.out.println("Response sent.");
+            //System.out.println("Response sent.");
 
         } catch (IOException e) {
+            boolean wasInterrupted = Thread.interrupted();  // Also clears the flag
+            System.err.println(" IOException caught!");
+            System.err.println("   Exception type: " + e.getClass().getName());
+            System.err.println("   Exception message: " + e.getMessage());
+            System.err.println("   Thread was interrupted: " + wasInterrupted);
+            System.err.println("   Thread: " + Thread.currentThread().getName());
+            e.printStackTrace();
             throw new RuntimeException("Error: " + e.getMessage());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
+        } catch (Exception e) {
+            //  Check if this IOException was caused by interrupt
+            boolean wasInterrupted = Thread.interrupted();  // Also clears the flag
+            System.err.println("   IOException caught!");
+            System.err.println("   Exception type: " + e.getClass().getName());
+            System.err.println("   Exception message: " + e.getMessage());
+            System.err.println("   Thread was interrupted: " + wasInterrupted);
+            System.err.println("   Thread: " + Thread.currentThread().getName());
+            e.printStackTrace();
+            throw new RuntimeException("Error: " + e.getMessage());
         }
     }
 
+    @Override
+    public VoteResponse sendRequestVote(int destinationNodeId, VoteRequest req) {
+        return SocketsUtil.sendVoteRequest(destinationNodeId, req);
+    }
 
 
     /*public void send(int destinationNodeId, Message message)  {
@@ -206,7 +259,7 @@ public class RaftServer implements RaftTransport {
     }
 */
     public AppendEntryResponse sendAppendEntries(int destinationNodeId, AppendEntryRequest appendEntryRequest) {
-        return MessageHandler.sendAppendEntry(destinationNodeId, appendEntryRequest);
+        return SocketsUtil.sendAppendEntry(destinationNodeId, appendEntryRequest);
        /* RaftConnection conn = getOutboundConnection(destinationNodeId);
         System.out.println("conn" + conn.hashCode());
         conn.send(appendEntryRequest);
@@ -229,5 +282,9 @@ public class RaftServer implements RaftTransport {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    public String getRole() {
+        return raftController.getRole();
     }
 }

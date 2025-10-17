@@ -58,7 +58,7 @@ public class RaftLog {
         }
 
         if(entries.isEmpty()) {
-            System.out.println("Entries are empty.");
+            //System.out.println("Entries are empty.");
             return true;
         }
 
