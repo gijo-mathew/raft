@@ -80,7 +80,7 @@ public class RaftController {
         while (this.role.equalsIgnoreCase("leader")) {
             try {
                 updateCommitIndex();
-                Thread.sleep(50);
+                Thread.sleep(RaftConfig.COMMIT_CHECK_INTERVAL_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -140,7 +140,7 @@ public class RaftController {
             }
 
             try {
-                Thread.sleep(50);
+                Thread.sleep(RaftConfig.HEARTBEAT_INTERVAL_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
